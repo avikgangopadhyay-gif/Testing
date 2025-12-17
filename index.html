@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Cosmic App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #0f172a;
+      color: white;
+    }
+    .box {
+      max-width: 400px;
+      margin: auto;
+      margin-top: 40px;
+      padding: 20px;
+      background: #020617;
+      border-radius: 10px;
+    }
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 6px;
+      border: none;
+    }
+    button {
+      background: #3b82f6;
+      color: white;
+      font-size: 16px;
+    }
+    img {
+      display: block;
+      margin: 15px auto;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+  </style>
+</head>
+<body>
+
+<!-- AUTH PAGE -->
+<div class="box" id="authPage">
+  <h2>Signup / Login</h2>
+
+  <input id="name" placeholder="Name">
+  <input id="username" placeholder="Username">
+  <input id="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
+
+  <button onclick="signup()">Sign Up</button>
+  <button onclick="login()">Login</button>
+  <button onclick="googleLogin()">Login with Google</button>
+</div>
+
+<!-- PROFILE PAGE -->
+<div class="box" id="mainPage" style="display:none">
+  <h2>My Profile</h2>
+
+  <img id="profileImg"
+       src="https://via.placeholder.com/120"
+       width="120" height="120">
+
+  <input type="file" id="imageInput" accept="image/*">
+
+  <pre id="userData" style="font-size:12px"></pre>
+
+  <button onclick="logout()">Logout</button>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+/* 🔥 FIREBASE CONFIG */
+const firebaseConfig = {
+  apiKey: "AIzaSyCaF0U-gGY0r6uUgQ485NDggSPz5rIop7o",
+  authDomain: "robos-ca998.firebaseapp.com",
+  projectId: "robos-ca998"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+/* ☁️ CLOUDINARY CONFIG */
+const CLOUD_NAME = "dvhyjrc1q";
+const UPLOAD_PRESET = "Reel_upload";
+
+/* ELEMENTS */
+const authPage = document.getElementById("authPage");
+const mainPage = document.getElementById("mainPage");
+const userData = document.getElementById("userData");
+const profileImg = document.getElementById("profileImg");
+const imageInput = document.getElementById("imageInput");
+
+/* SIGNUP */
+window.signup = async () => {
+  const nameVal = document.getElementById("name").value;
+  const usernameVal = document.getElementById("username").value;
+  const emailVal = document.getElementById("email").value;
+  const passwordVal = document.getElementById("password").value;
+
+  const cred = await createUserWithEmailAndPassword(auth, emailVal, passwordVal);
+
+  await setDoc(doc(db, "users", cred.user.uid), {
+    name: nameVal,
+    username: usernameVal,
+    email: emailVal,
+    profileImage: "",
+    createdAt: new Date()
+  });
+};
+
+/* LOGIN */
+window.login = () => {
+  signInWithEmailAndPassword(
+    auth,
+    document.getElementById("email").value,
+    document.getElementById("password").value
+  );
+};
+
+/* GOOGLE LOGIN */
+window.googleLogin = async () => {
+  const provider = new GoogleAuthProvider();
+  const res = await signInWithPopup(auth, provider);
+
+  const ref = doc(db, "users", res.user.uid);
+  const snap = await getDoc(ref);
+
+  if (!snap.exists()) {
+    await setDoc(ref, {
+      name: res.user.displayName,
+      email: res.user.email,
+      profileImage: res.user.photoURL || ""
+    });
+  }
+};
+
+/* AUTH STATE */
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    authPage.style.display = "none";
+    mainPage.style.display = "block";
+
+    const snap = await getDoc(doc(db, "users", user.uid));
+    const data = snap.data();
+
+    userData.innerText = JSON.stringify(data, null, 2);
+
+    if (data.profileImage) {
+      profileImg.src = data.profileImage;
+    }
+  }
+});
+
+/* LOGOUT */
+window.logout = () => {
+  signOut(auth);
+  location.reload();
+};
+
+/* ✅ IMAGE UPLOAD — FULLY FIXED */
+imageInput.addEventListener("change", async () => {
+  const file = imageInput.files[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", UPLOAD_PRESET);
+
+  const res = await fetch(
+    `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+    { method: "POST", body: formData }
+  );
+
+  const data = await res.json();
+
+  /* Save to Firestore */
+  await setDoc(
+    doc(db, "users", auth.currentUser.uid),
+    { profileImage: data.secure_url },
+    { merge: true }
+  );
+
+  /* Show instantly on page */
+  profileImg.src = data.secure_url;
+});
+</script>
+
+</body>
+</html>
