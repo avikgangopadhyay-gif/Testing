@@ -1,0 +1,38 @@
+body{
+  background:#020617;
+  color:white;
+  font-family:Arial;
+}
+.box{
+  max-width:420px;
+  margin:auto;
+  margin-top:30px;
+  padding:20px;
+  border:1px solid #1e293b;
+  border-radius:12px;
+}
+input,button{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border-radius:6px;
+  border:none;
+}
+button{
+  background:#3b82f6;
+  color:white;
+  cursor:pointer;
+}
+.profile{text-align:center}
+.profile img{
+  width:120px;
+  height:120px;
+  border-radius:50%;
+  object-fit:cover;
+}
+.reels{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+}
+video{width:100%;border-radius:10px}

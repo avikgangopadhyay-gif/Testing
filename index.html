@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Cosmic App</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="box" id="authPage">
+  <h2>Signup / Login</h2>
+  <input id="name" placeholder="Name">
+  <input id="username" placeholder="Username">
+  <input id="email" placeholder="Email">
+  <input id="password" type="password">
+  <button id="signupBtn">Sign Up</button>
+  <button id="loginBtn">Login</button>
+  <button id="googleBtn">Google Login</button>
+</div>
+
+<div class="box" id="mainPage" style="display:none">
+  <div class="profile">
+    <img id="profileImg">
+    <h3 id="usernameText"></h3>
+    <p id="bioText"></p>
+  </div>
+
+  <input type="file" id="profileInput" accept="image/*">
+  <input id="bioInput" placeholder="Update bio">
+  <button id="saveBioBtn">Save Bio</button>
+
+  <hr>
+
+  <h3>Upload Reel</h3>
+  <input type="file" id="reelInput" accept="video/*">
+
+  <div id="myReels" class="reels"></div>
+
+  <button id="logoutBtn">Logout</button>
+</div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
